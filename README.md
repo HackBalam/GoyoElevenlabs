@@ -26,13 +26,13 @@ agentId: 'AgentID'
    npm run dev
 
 6. Antes Configura tu agente de voz en elevenlabs.
-Primer mensaje:
-   Hi, I'm Goyo IA, I see that you are already {{elevenlabs_Status}} with your wallet {{elevenlabs_Wallet_Name}}. 
+7. Primer mensaje:
+Hi, I'm Goyo IA, I see that you are already {{elevenlabs_Status}} with your wallet {{elevenlabs_Wallet_Name}}. 
 Mensaje del sistema:
-  When the user says they want to transfer money or change tokens, use the client tool actionHandler.
+When the user says they want to transfer money or change tokens, use the client tool actionHandler.
 Valor de variables dinámicas:
-  elevenlabs_Status-desconnected
-  elevenlabs_Wallet_Name-Walletconnect
+elevenlabs_Status-desconnected
+elevenlabs_Wallet_Name-Walletconnect
 Agregar un cliente:
 Nombre-actionHandler
 Descripción
