@@ -11,7 +11,7 @@ en la conexión de la wallet con reown.
 
 import { useConversation } from '@elevenlabs/react';
 import { useCallback, useState } from 'react'; // Se agrega useState para manejar el estado de las variables de contacto
-import { useAppKitAccount, useWalletInfo } from '@reown/appkit/react-core';//Los paquetes necesarios para llamar la información de la wallet de reown (Para mayor entendimiento de como funciona el appkit ir a components/InfoList.tsx).
+import { useAppKitAccount, useWalletInfo, useAppKitProvider, type Provider } from '@reown/appkit/react-core';//Los paquetes necesarios para llamar la información de la wallet de reown (Para mayor entendimiento de como funciona el appkit ir a components/InfoList.tsx).
 import { contactsStorage } from './utils/contactsStorage'; // Se importa el módulo de manejo de contactos desde localStorage
 
 
@@ -26,10 +26,59 @@ export function useContactValidation() {
 export function Conversation() {
     const { address, isConnected, status } = useAppKitAccount();//Se específican los datos que se llaman del appkit de reown.
     const { walletInfo } = useWalletInfo();//Se específican los datos que se llaman del appkit de reown (Para extraer el nombre de la wallet conectada).
+    const { walletProvider } = useAppKitProvider<Provider>('eip155'); // Provider de wallet para ejecutar transacciones
     
     // Estados para manejar la información de contactos validados
     const [contactCheck, setContactCheck] = useState<boolean>(false); // Variable que indica si el contacto existe en localStorage
     const [addressContact, setAddressContact] = useState<string>(''); // Variable que almacena la dirección del contacto validado
+    const [transferStatus, setTransferStatus] = useState<string>(''); // Variable que almacena el estado de la transferencia para enviar al agente de voz
+    
+    // Función para ejecutar la transferencia usando el provider de la wallet
+    const executeTransfer = useCallback(async (toAddress: string, amount: string, token: string) => {
+      try {
+        // Verificar que la wallet esté conectada y el provider esté disponible
+        if (!isConnected || !walletProvider || !address) {
+          console.error('❌ Wallet no conectada o provider no disponible');
+          setTransferStatus('error_wallet_not_connected'); // Actualizar estado de transferencia
+          return;
+        }
+        
+        setTransferStatus('initiating'); // Establecer estado inicial de transferencia
+        console.log('🔄 Iniciando transferencia...');
+        console.log('📍 Desde:', address); // Dirección del usuario conectado
+        console.log('📍 Hacia:', toAddress); // Dirección del contacto encontrado
+        console.log('💰 Cantidad:', amount); // Cantidad a transferir
+        console.log('🪙 Token:', token); // Token a transferir
+        
+        // Convertir la cantidad a Wei (multiplicar por 10^18 para ETH)
+        const amountInWei = '0x' + (parseFloat(amount) * Math.pow(10, 18)).toString(16);
+        
+        // Preparar la transacción para transferir ETH nativo
+        const transactionParams = {
+          from: address, // Dirección del remitente (usuario conectado)
+          to: toAddress, // Dirección del destinatario (contacto encontrado)
+          value: amountInWei, // Cantidad en Wei
+          gas: '0x5208', // Gas límite para transferencia simple de ETH (21000 en decimal)
+        };
+        
+        console.log('📋 Parámetros de transacción:', transactionParams);
+        setTransferStatus('pending'); // Establecer estado pendiente antes de enviar
+        
+        // Enviar la transacción usando el provider de la wallet
+        const txHash = await walletProvider.request({
+          method: 'eth_sendTransaction',
+          params: [transactionParams]
+        });
+        
+        console.log('✅ Transferencia exitosa! Hash:', txHash);
+        setTransferStatus(`success_${txHash}`); // Establecer estado exitoso con hash de transacción
+        
+      } catch (error) {
+        console.error('❌ Error en la transferencia:', error);
+        setTransferStatus(`error_${error.message || 'unknown_error'}`); // Establecer estado de error con mensaje
+      }
+    }, [isConnected, walletProvider, address]); // Dependencias del useCallback
+    
     const conversation = useConversation({
     onConnect: () => console.log('Connected'),
     onDisconnect: () => console.log('Disconnected'),
@@ -60,6 +109,11 @@ export function Conversation() {
               setContactCheck(true); // Establecer que el contacto existe
               setAddressContact(foundContact.address); // Guardar la dirección del contacto encontrado
               console.log("✅ Contacto encontrado:", foundContact.name, "- Dirección:", foundContact.address);
+              
+              // Ejecutar transferencia si la acción es "transfer" y se encontró el contacto
+              if (action === 'transfer' && amount && token) {
+                await executeTransfer(foundContact.address, amount, token);
+              }
             } else {
               // Si no se encuentra el contacto, establecer valores por defecto
               setContactCheck(false); // Establecer que el contacto no existe
@@ -72,14 +126,15 @@ export function Conversation() {
             elevenlabs_Address:address,//Variable dinámica que se manda al agente de voz de elevenlabs (Address de la wallet).
             elevenlabs_Status:status, //Variable dinámica que se manda al agente de voz de elevenlabs (Status de conexión de la wallet).
             elevenlabs_Wallet_Name:walletInfo?.name || 'Unknown', //Variable dinámica que se manda al agente de voz de elevenlabs (Con que wallet se conectó).
-            elevenlabs_check_contact:contactCheck //Variable dinámica que indica al agente de voz si el contacto existe en localStorage
+            elevenlabs_check_contact:contactCheck, //Variable dinámica que indica al agente de voz si el contacto existe en localStorage
+            elevenlabs_transfer_status:transferStatus //Variable dinámica que indica al agente de voz el estado de la transferencia (initiating, pending, success_hash, error_message)
         }
       });
 
     } catch (error) {
       console.error('Failed to start conversation:', error);
     }
-  }, [conversation, address, status, walletInfo, contactCheck]); //IMPORTANTE AGREGAR LAS VARIABLES DINÁMICAS QUE SE UTILIZARÁN PARA MANDAR AL AGENTE DE VOZ.
+  }, [conversation, address, status, walletInfo, contactCheck, transferStatus]); //IMPORTANTE AGREGAR LAS VARIABLES DINÁMICAS QUE SE UTILIZARÁN PARA MANDAR AL AGENTE DE VOZ.
 
   const stopConversation = useCallback(async () => {
     await conversation.endSession();
@@ -113,6 +168,10 @@ export function Conversation() {
           {/* Solo mostrar la dirección si el contacto fue encontrado */}
           {contactCheck && addressContact && (
             <p><strong>Contact Address:</strong> {addressContact}</p>
+          )}
+          {/* Mostrar el estado de la transferencia */}
+          {transferStatus && (
+            <p><strong>Transfer Status:</strong> {transferStatus}</p>
           )}
         </div>
       </div>
