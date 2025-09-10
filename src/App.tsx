@@ -13,6 +13,7 @@ import { projectId, metadata, networks } from './config'
 
 import "./App.css"
 import { Conversation } from "./conversation.tsx"//Se importa el archivo de configuración del agente de voz de elevenlabs.
+import { ContactsManager } from "./components/ContactsManager"// Se importa el componente de gestión de contactos.
 
 const queryClient = new QueryClient()
 
@@ -63,6 +64,7 @@ export function App() {
             <Conversation />
           </div>
         </main>
+        <ContactsManager />
     </div>
   )
 }
