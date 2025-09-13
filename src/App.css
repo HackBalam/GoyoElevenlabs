@@ -1,6 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #1CC5B8;
+  --secondary: #7D4AE8;
+  --accent: #FF6B57;
+  --success: #2ECC71;
+  --error: #E74C3C;
 }
 
 html,
@@ -12,7 +21,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -51,27 +60,55 @@ section {
   text-align: center;
 }
 
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300;
+  }
+  
+  .btn-accent {
+    @apply px-6 py-3 bg-accent text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300;
+  }
+  
+  .btn-success {
+    @apply px-6 py-3 bg-success text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300;
+  }
+  
+  .microphone-base {
+    @apply w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out shadow-lg;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+}
+
 button {
   padding: 10px 15px;
   background-color: white;
   color: black;
-  border: 2px solid black;
+  border: none;
   border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin: 15px; /* Space between buttons */
+  margin: 15px;
+  outline: none;
 }
 
 button:hover {
   background-color: black;
-    color: white;
+  color: white;
 }
 
 button:active {
-  background-color: #333; /* Dark gray on click */
-    color: white;
+  background-color: #333;
+  color: white;
+}
+
+button:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 h1 {
@@ -90,20 +127,7 @@ pre {
 
 
 .link-button {
-  background-color: black;
-  color: white;
-  padding: 5px 10px;
-  text-decoration: none;
-  border-radius: 5px;
-}
-
-.link-button:hover {
-  background-color: #333;  /* Darken the background on hover */
-}
-
-.link-button:hover {
-  background-color: white;  /* Change background to white on hover */
-  color: black;  /* Change text color to black on hover */
+  @apply bg-primary text-white px-3 py-2 no-underline rounded-lg hover:bg-primary/80 transition-all duration-300;
 }
 
 .advice {

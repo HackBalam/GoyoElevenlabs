@@ -2,18 +2,19 @@
 Para implementar como base el proyecto de reown se utilizó como referencia la sigueinte documentación:
 https://docs.monad.xyz/guides/reown-guide
 Adicionalmente en este archivo se agrega el front de el agente de voz de elevenlabs.
+Se implementó React Router para navegación entre páginas con diseño responsivo.
 */
 
 import { createAppKit } from '@reown/appkit/react'
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ActionButtonList } from './components/ActionButtonList'
-import { InfoList } from './components/InfoList'
 import { projectId, metadata, networks } from './config'
+import { Navigation } from './components/Navigation'
+import { HomePage } from './pages/HomePage'
+import { ContactsPage } from './pages/ContactsPage'
+import { DebugPage } from './pages/DebugPage'
 
 import "./App.css"
-import { Conversation } from "./conversation.tsx"//Se importa el archivo de configuración del agente de voz de elevenlabs.
-import { ContactsManager } from "./components/ContactsManager"// Se importa el componente de gestión de contactos.
 
 const queryClient = new QueryClient()
 
@@ -32,40 +33,33 @@ createAppKit({
   ...generalConfig,
   features: {
     analytics: true, // Optional - defaults to your Cloud configuration
-    socials: [],
-    email: false
-  }
+    socials: ["google","x","github","discord","apple","facebook","farcaster",],
+    email: true,
+    emailShowWallets: true
+  },
 })
 
 export function App() {
-  
-
-//Aquí se encuentra el frontend de elevenlabs y reown.
   return (
-    <div className={"pages"}>
-      <img src="/reown.svg" alt="Reown" style={{ width: '150px', height: '150px' }} />
-      <h1>AppKit Core React dApp Example</h1>
-        <QueryClientProvider client={queryClient}>
-            <appkit-button />
-            <ActionButtonList />
-            <div className="advice">
-              <p>
-                This projectId only works on localhost. <br/>
-                Go to <a href="https://cloud.reown.com" target="_blank" className="link-button" rel="Reown Cloud">Reown Cloud</a> to get your own.
-              </p>
-            </div>
-            <InfoList />
-        </QueryClientProvider>
-        <main className="flex min-h-screen flex-col items-center justify-between p-24">
-          <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm">
-            <h1 className="text-4xl font-bold mb-8 text-center">
-              Elevenlabs Agents
-            </h1>
-            <Conversation />
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-white to-[#1CC5B8]/5">
+          <div className="hidden md:block fixed top-4 left-4 z-50">
+            <Navigation />
           </div>
-        </main>
-        <ContactsManager />
-    </div>
+          
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/contacts" element={<ContactsPage />} />
+            <Route path="/debug" element={<DebugPage queryClient={queryClient} />} />
+          </Routes>
+          
+          <div className="md:hidden">
+            <Navigation />
+          </div>
+        </div>
+      </Router>
+    </QueryClientProvider>
   )
 }
 

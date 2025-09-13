@@ -73,9 +73,9 @@ export function Conversation() {
         console.log('✅ Transferencia exitosa! Hash:', txHash);
         setTransferStatus(`success_${txHash}`); // Establecer estado exitoso con hash de transacción
         
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ Error en la transferencia:', error);
-        setTransferStatus(`error_${error.message || 'unknown_error'}`); // Establecer estado de error con mensaje
+        setTransferStatus(`error_${error?.message || 'unknown_error'}`); // Establecer estado de error con mensaje
       }
     }, [isConnected, walletProvider, address]); // Dependencias del useCallback
     
@@ -94,7 +94,8 @@ export function Conversation() {
       // Start the conversation with your agent
       await conversation.startSession({
         agentId: 'agent_7601k3d9c9kme3ks4090bek2vk40',//ID de Agente de elevenlabs configurado.
-        user_id: 'navalue',
+        userId: 'navalue',
+        connectionType: 'webrtc',
         clientTools:{actionHandler: async ({action,contact,token,token2,amount})=>{
           console.log("🟢 Acción recibida:", action, " Datos recibidos",contact,"|",amount,"|",token,"|",token2);
           
@@ -123,8 +124,8 @@ export function Conversation() {
           }
         }}, //uso de clientTools para obtener la acción (trasfer|exchange) que quiere usar el usuario a travez del agente de voz, el contacto y el token inicial como el final.
         dynamicVariables:{
-            elevenlabs_Address:address,//Variable dinámica que se manda al agente de voz de elevenlabs (Address de la wallet).
-            elevenlabs_Status:status, //Variable dinámica que se manda al agente de voz de elevenlabs (Status de conexión de la wallet).
+            elevenlabs_Address:address || '',//Variable dinámica que se manda al agente de voz de elevenlabs (Address de la wallet).
+            elevenlabs_Status:status || 'disconnected', //Variable dinámica que se manda al agente de voz de elevenlabs (Status de conexión de la wallet).
             elevenlabs_Wallet_Name:walletInfo?.name || 'Unknown', //Variable dinámica que se manda al agente de voz de elevenlabs (Con que wallet se conectó).
             elevenlabs_check_contact:contactCheck, //Variable dinámica que indica al agente de voz si el contacto existe en localStorage
             elevenlabs_transfer_status:transferStatus //Variable dinámica que indica al agente de voz el estado de la transferencia (initiating, pending, success_hash, error_message)
